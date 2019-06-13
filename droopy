@@ -12,6 +12,7 @@ Changelog
             * Efficiency and Security improvements
             * Added --config-file option.
             * Retains backwards compatibility.
+   20141028 * Added bulk download as zip
    20131121 * Update HTML/CSS for mobile devices
             * Add HTTPS support
             * Add HTTP basic authentication
@@ -88,6 +89,7 @@ import tempfile
 import socket
 import base64
 import functools
+import zipfile
 
 
 def _decode_str_if_py2(inputstr, encoding='utf-8'):
@@ -280,7 +282,7 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
             for name in self.published_files():
                 encoded_name = urllibparse.quote(_encode_str_if_py2(name))
                 links += '<a href="/{0}">{1}</a>'.format(encoded_name, name)
-            links = '<div id="files">' + links + '</div>'
+            links = '<a href="?download">Download all</a><div id="files">' + links + '</div>'
         dico["files"] = links
         # -- Add a link to discover the url
         if self.client_address[0] == "127.0.0.1":
@@ -300,7 +302,20 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
 
         # TODO: Refactor special-method handling to make more modular?
         # Include ability to self-define "special method" prefix path?
-        if self.picture != None and self.path == '/__droopy/picture':
+
+        #path = self.translate_path(self.path)
+        if self.path.endswith('?download'):
+            tmp_file = tempfile.mktemp()
+            self.path = self.path.replace("?download","")
+
+            zip = zipfile.ZipFile(tmp_file, 'w')
+            for file in self.published_files():
+                print("Adding file to archive: %s" % file)
+                zip.write(os.path.join(self.directory, file),file)
+            zip.close()
+            self.send_file(tmp_file)
+            os.remove(tmp_file)
+        elif self.picture != None and self.path == '/__droopy/picture':
             # send the picture
             self.send_file(self.picture)
         # serve static files
@@ -1133,3 +1148,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+                                    
