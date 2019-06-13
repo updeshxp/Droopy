@@ -209,6 +209,7 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
     message = ''
     picture = ''
     publish_files = False
+    donwload_all = False
     file_mode = None
     protocol_version = 'HTTP/1.0'
     form_field = 'upfile'
@@ -282,7 +283,10 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
             for name in self.published_files():
                 encoded_name = urllibparse.quote(_encode_str_if_py2(name))
                 links += '<a href="/{0}">{1}</a>'.format(encoded_name, name)
-            links = '<a href="?download">Download all</a><div id="files">' + links + '</div>'
+            links = '<div id="files">' + links + '</div>'
+        # Possibly provide a "download all" link
+        if self.download_all:
+            links = '<a href="?download">Download all</a>' + links
         dico["files"] = links
         # -- Add a link to discover the url
         if self.client_address[0] == "127.0.0.1":
@@ -442,6 +446,7 @@ def run(hostname='',
         message='',
         file_mode=None,
         publish_files=False,
+        download_all=False,
         auth='',
         certfile=None,
         permitted_ciphers=(
@@ -464,6 +469,7 @@ def run(hostname='',
     HTTPUploadHandler.localisations = localisations
     HTTPUploadHandler.certfile = certfile
     HTTPUploadHandler.publish_files = publish_files
+    HTTPUploadHandler.download_all = download_all
     HTTPUploadHandler.picture = picture
     HTTPUploadHandler.message = message
     HTTPUploadHandler.file_mode = file_mode
@@ -1056,6 +1062,8 @@ def parse_args(cmd=None, ignore_defaults=False):
                         help='set the picture')
     parser.add_argument('--publish-files', '--dl', action='store_true', default=False,
                         help='provide download links')
+    parser.add_argument('--download-all', '--da', action='store_true', default=False,
+                        help='provide "download all" link')
     parser.add_argument('-a', '--auth', type=str, default='',
                         help='set the authentication credentials, in form USER:PASS')
     parser.add_argument('--ssl', type=str, default='',
@@ -1140,6 +1148,7 @@ def main():
             directory=args['directory'],
             file_mode=args['chmod'],
             publish_files=args['publish_files'],
+            download_all=args['download_all'],
             auth=args['auth'],
             templates=default_templates,
             localisations=default_localisations)
@@ -1148,4 +1157,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-                                    
+
