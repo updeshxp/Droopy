@@ -1,6 +1,6 @@
 # Droopy
 ### Easy File Sharing
-Copyright 2008-2013 (c) Pierre Duquesne <stackp@online.fr>
+Original Copyright 2008-2013 (c) Pierre Duquesne <stackp@online.fr>
 Licensed under the New BSD License.
 Originally shared at [Pierre's Blog, stackp.online.fr](http://stackp.online.fr/droopy).
 
@@ -11,6 +11,12 @@ ad-hoc basis, it has become central to systems such as [Piratebox](http://www.pi
 which extend the concept to offline, social filesharing.
 
 ![Droopy in the Browser, with a title image](img/droopy-in-browser-thumb.png)
+
+### Extra features on this fork
+The project is not being maintained by the original developer.  There are many forks, some with useful features. This fork will collect together the features which are useful to me, and I will merge in contributions if you submit pull requests. 
+
+* Dropzone (drag & drop files) -- thanks to profpatsch
+* Download-all -- thanks to DennisHesling
 
 ### Usage
 Note: [A tutorial on how to set up Droopy on Windows](http://www.techkings.org/general-pc-chat/34104-droopy-tutorial.html)
