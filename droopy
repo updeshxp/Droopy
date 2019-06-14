@@ -90,7 +90,7 @@ import socket
 import base64
 import functools
 import zipfile
-
+from enum import Enum
 
 def _decode_str_if_py2(inputstr, encoding='utf-8'):
     "Will return decoded with given encoding *if* input is a string and it's Py2."
@@ -137,6 +137,15 @@ def check_auth(method):
     functools.update_wrapper(decorated, method)
     return decorated
 
+# Allowable sort orders for the files
+class SORT_ORDER(Enum):
+    none = 'none'
+    filename = 'filename'
+    date = 'date'
+    size = 'size'
+
+    def __str__(self):
+        return self.value
 
 class Abort(Exception):
     "Used by handle to rethrow exceptions in ThreadedHTTPServer."
@@ -209,6 +218,8 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
     message = ''
     picture = ''
     publish_files = False
+    sort = None
+    reverse = False
     donwload_all = False
     file_mode = None
     protocol_version = 'HTTP/1.0'
@@ -405,7 +416,8 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
             shutil.copyfileobj(f, self.wfile)
 
     def published_files(self):
-        "Returns the list of files that should appear as download links."
+        """Returns the list of files that should appear as download links,
+        sorted as specified by 'sort' and 'reverse' params."""
         names = []
         # In py2, listdir() returns strings when the directory is a string.
         for name in os.listdir(unicode(self.directory)):
@@ -414,7 +426,20 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
             npath = os.path.join(self.directory, name)
             if os.path.isfile(npath):
                 names.append(name)
-        names.sort(key=lambda s: s.lower())
+
+        # Sort the links as specified by 'sort'
+        if self.sort==SORT_ORDER.filename:
+            names.sort(key=lambda s: s.lower())
+        elif self.sort==SORT_ORDER.date:
+            names.sort(key=lambda s: os.path.getmtime(s))
+        elif self.sort==SORT_ORDER.size:
+            names.sort(key=lambda s: os.path.getsize(s))
+            pass
+
+        # Optionally reverse the order as specified by 'reverse'
+        if self.reverse:
+            names.reverse()
+
         return names
 
     def handle(self):
@@ -446,6 +471,8 @@ def run(hostname='',
         message='',
         file_mode=None,
         publish_files=False,
+        sort=None,
+        reverse=False,
         download_all=False,
         auth='',
         certfile=None,
@@ -469,6 +496,8 @@ def run(hostname='',
     HTTPUploadHandler.localisations = localisations
     HTTPUploadHandler.certfile = certfile
     HTTPUploadHandler.publish_files = publish_files
+    HTTPUploadHandler.sort = sort
+    HTTPUploadHandler.reverse = reverse
     HTTPUploadHandler.download_all = download_all
     HTTPUploadHandler.picture = picture
     HTTPUploadHandler.message = message
@@ -1062,6 +1091,10 @@ def parse_args(cmd=None, ignore_defaults=False):
                         help='set the picture')
     parser.add_argument('--publish-files', '--dl', action='store_true', default=False,
                         help='provide download links')
+    parser.add_argument('--sort', type=SORT_ORDER, choices=list(SORT_ORDER),
+                        help='sort order for download links (ascending')
+    parser.add_argument('--reverse', action='store_true', default=False,
+                        help='reverse sort order (descending)')
     parser.add_argument('--download-all', '--da', action='store_true', default=False,
                         help='provide "download all" link')
     parser.add_argument('-a', '--auth', type=str, default='',
@@ -1148,6 +1181,8 @@ def main():
             directory=args['directory'],
             file_mode=args['chmod'],
             publish_files=args['publish_files'],
+            sort=args['sort'],
+            reverse=args['reverse'],
             download_all=args['download_all'],
             auth=args['auth'],
             templates=default_templates,
