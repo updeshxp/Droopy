@@ -6,6 +6,7 @@ Copyright 2008-2013 (c) Pierre Duquesne <stackp@online.fr>
 Licensed under the New BSD License.
 
 Changelog
+   20190614 * Added various file sort options
    20151025 * Global variables removed
             * Code refactoring and re-layout
             * Python 2 and 3 compatibility

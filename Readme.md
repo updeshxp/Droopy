@@ -17,6 +17,7 @@ The project is not being maintained by the original developer.  There are many f
 
 * Dropzone (drag & drop files) -- thanks to profpatsch
 * Download-all -- thanks to DennisHesling
+* Sort download links by size, date or name
 
 ### Usage
 Note: [A tutorial on how to set up Droopy on Windows](http://www.techkings.org/general-pc-chat/34104-droopy-tutorial.html)
@@ -43,6 +44,4 @@ you can put `droopy` into a folder that's in your system PATH variable, such as
 `/usr/bin/` and call it directly: `droopy --help`.
 
 ### Feedback and contribution
-I’d love to hear about your experience using droopy.
-If you have ideas to improve it, please let me know.
-Pierre – [stackp@online.fr](mailto:stackp@online.fr). 
+The original developer (stackp) does not seem to be actively maintaining the project.  I will accept contributions in the form of merge requests and bug reports.
