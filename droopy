@@ -432,9 +432,9 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
         if self.sort==SORT_ORDER.filename:
             names.sort(key=lambda s: s.lower())
         elif self.sort==SORT_ORDER.date:
-            names.sort(key=lambda s: os.path.getmtime(s))
+            names.sort(key=lambda s: os.path.getmtime(os.path.join(self.directory, s)))
         elif self.sort==SORT_ORDER.size:
-            names.sort(key=lambda s: os.path.getsize(s))
+            names.sort(key=lambda s: os.path.getsize(os.path.join(self.directory, s)))
             pass
 
         # Optionally reverse the order as specified by 'reverse'
