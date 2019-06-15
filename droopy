@@ -631,7 +631,7 @@ function onunload() {
   var uploadDropzone = new Dropzone("#upload-form", {
                                        url: "/",
                                        paramName: "upfile",
-                                       // client-side filesize doesn’t make sense
+                                       // client-side filesize doesn't make sense
                                        maxFilesize: 10000000000000
                                    });
 </script>
