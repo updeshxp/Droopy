@@ -224,7 +224,8 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
     publish_files = False
     sort = None
     reverse = False
-    donwload_all = False
+    download_all = False
+    overwrite = False
     file_mode = None
     protocol_version = 'HTTP/1.0'
     form_field = 'upfile'
@@ -368,10 +369,11 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
                 localpath = _encode_str_if_py2(os.path.join(self.directory, filename), "utf-8")
                 root, ext = os.path.splitext(localpath)
                 i = 1
-                # TODO: race condition...
-                while os.path.exists(localpath):
-                    localpath = "%s-%d%s" % (root, i, ext)
-                    i = i + 1
+                if not self.overwrite:
+                    # TODO: race condition...
+                    while os.path.exists(localpath):
+                        localpath = "%s-%d%s" % (root, i, ext)
+                        i = i + 1
                 if hasattr(item, 'tmpfile'):
                     # DroopyFieldStorage.make_file() has been called
                     item.tmpfile.close()
@@ -478,6 +480,7 @@ def run(hostname='',
         sort=None,
         reverse=False,
         download_all=False,
+        overwrite=False,
         auth='',
         certfile=None,
         permitted_ciphers=(
@@ -503,6 +506,7 @@ def run(hostname='',
     HTTPUploadHandler.sort = sort
     HTTPUploadHandler.reverse = reverse
     HTTPUploadHandler.download_all = download_all
+    HTTPUploadHandler.overwrite = overwrite
     HTTPUploadHandler.picture = picture
     HTTPUploadHandler.message = message
     HTTPUploadHandler.file_mode = file_mode
@@ -1107,6 +1111,8 @@ def parse_args(cmd=None, ignore_defaults=False):
                         help='set up https using the certificate file')
     parser.add_argument('--chmod', type=str, default=None,
                         help='set the file permissions (octal value)')
+    parser.add_argument('-o', '--overwrite', action='store_true', default=False,
+                        help="overwrite existing files")
     parser.add_argument('--save-config', action='store_true', default=False,
                         help='save options in a configuration file')
     parser.add_argument('--delete-config', action='store_true', default=False,
@@ -1188,6 +1194,7 @@ def main():
             sort=args['sort'],
             reverse=args['reverse'],
             download_all=args['download_all'],
+            overwrite=args['overwrite'],
             auth=args['auth'],
             templates=default_templates,
             localisations=default_localisations)
