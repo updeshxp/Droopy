@@ -18,6 +18,7 @@ The project is not being maintained by the original developer.  There are many f
 * Dropzone (drag & drop files) -- thanks to profpatsch
 * Download-all -- thanks to DennisHesling
 * Sort download links by size, date or name
+* Bugfix to basic auth -- thanks to ikarus23
 
 ### Usage
 Note: [A tutorial on how to set up Droopy on Windows](http://www.techkings.org/general-pc-chat/34104-droopy-tutorial.html)
