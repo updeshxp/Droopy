@@ -221,6 +221,7 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
         raise NotImplementedError("Must provide directory to host.")
 
     message = ''
+    motd = None
     picture = ''
     publish_files = False
     sort = None
@@ -283,12 +284,23 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
         """
         dico = {}
         dico.update(self.choose_language())
-        # -- Set message and picture
+        # Set message
         if self.message:
             dico['message'] = '<div id="message">{0}</div>'.format(self.message)
         else:
             dico["message"] = ''
-        # The default appears to be missing/broken, so needs a bit of love anyway.
+        # Set message-of-the-day
+        # This is re-read from file every time, to ensure it can be changed, e.g. by an external script, so we must
+        # be sure to handle the case where it has been deleted.
+        if self.motd:
+            try:
+                with open(self.motd) as motd_file:
+                    motd_text = motd_file.read()
+            except:
+                print("Problem reading MOTD file " + self.motd)
+                motd_text = ''
+            dico['motd'] = '<div id="motd">{0}</div>'.format(motd_text)
+        # Set picture
         if self.picture:
             dico["divpicture"] = self.divpicture
         else:
@@ -477,6 +489,7 @@ def run(hostname='',
         timeout=3*60,
         picture=None,
         message='',
+        motd=None,
         file_mode=None,
         publish_files=False,
         sort=None,
@@ -511,6 +524,7 @@ def run(hostname='',
     HTTPUploadHandler.overwrite = overwrite
     HTTPUploadHandler.picture = picture
     HTTPUploadHandler.message = message
+    HTTPUploadHandler.motd = motd
     HTTPUploadHandler.file_mode = file_mode
 
     # Prepare a list of auth strings for all user:pass combinations
@@ -557,6 +571,8 @@ a {color: #4499cc; text-decoration: none;}
 #linkurl a:hover {color: #fff;}
 #message {padding: 5px 0; font-size: 2em; font-weight: lighter;
           letter-spacing: -2px; line-height: 50px; color: #aaa;}
+#motd {padding: 5px 0; font-size: 1.2em; font-weight: lighter;
+          letter-spacing: -1px; line-height: 50px; color: #aaa;}
 #sending {display: none; font-style: italic;}
 #sending .text {padding-top: 10px; color: #bbb; font-size: 0.8em;}
 #wrapform {padding-top:40px;}
@@ -582,6 +598,7 @@ a {color: #4499cc; text-decoration: none;}
 userinfo = '''
 <div id="userinfo">
   %(message)s
+  %(motd)s
   %(divpicture)s
 </div>
 '''
@@ -1104,6 +1121,8 @@ def parse_args(cmd=None, ignore_defaults=False):
                         help='set the directory to upload files to')
     parser.add_argument('-m', '--message', type=str, default='',
                         help='set the message')
+    parser.add_argument('-mf', '--motd', type=str, default=None,
+                        help='set the message-of-the-day file')
     parser.add_argument('-p', '--picture', type=str, default='',
                         help='set the picture')
     parser.add_argument('--publish-files', '--dl', action='store_true', default=False,
@@ -1134,6 +1153,11 @@ def parse_args(cmd=None, ignore_defaults=False):
             args.picture = fullpath(args.picture)
         else:
             print("Picture not found: '{0}'".format(args.picture))
+    if args.motd:
+        if os.path.exists(args.motd):
+            args.motd = fullpath(args.motd)
+        else:
+            print("MOTD not found: '{0}'".format(args.motd))
     if args.delete_config:
         filename = default_configfile()
         os.remove(filename)
@@ -1205,6 +1229,7 @@ def main():
             certfile=args['ssl'],
             picture=args['picture'],
             message=args['message'],
+            motd=args['motd'],
             directory=args['directory'],
             file_mode=args['chmod'],
             publish_files=args['publish_files'],
