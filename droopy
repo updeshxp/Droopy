@@ -123,13 +123,13 @@ def check_auth(method):
         "Reject if auth fails."
         if self.auth:
             received = self.get_case_insensitive_header('Authorization', None)
-            if sys.version_info >= (3, 0):
-                expected = 'Basic ' + base64.b64encode(
-                            self.auth.encode('utf-8')).decode('utf-8')
-            else:
-                expected = 'Basic ' + base64.b64encode(self.auth)
+            # Log out the received user:pass, the interesting part of which is base64-encoded.
+            # This means the user's password is (very mildly obfuscated) in the logs, not ideal, but if you can see the
+            # logs you can probably already see the plaintext password in the config anyway.
+            print(received)
             # TODO: Timing attack?
-            if received != expected:
+            # If the received auth string was not one of the allowed ones, ask for authentication
+            if received not in self.auth:
                 self.send_response(401)
                 self.send_header('WWW-Authenticate', 'Basic realm=\"Droopy\"')
                 self.send_header('Content-type', 'text/html')
@@ -229,7 +229,7 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
     file_mode = None
     protocol_version = 'HTTP/1.0'
     form_field = 'upfile'
-    auth = ''
+    auth = []
     certfile = None
     divpicture = '<div class="box"><img src="/__droopy/picture"/></div>'
     staticfolder = os.environ.get("DROOPY_STATIC",
@@ -370,6 +370,7 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
                 root, ext = os.path.splitext(localpath)
                 i = 1
                 if not self.overwrite:
+
                     # TODO: race condition...
                     while os.path.exists(localpath):
                         localpath = "%s-%d%s" % (root, i, ext)
@@ -481,7 +482,7 @@ def run(hostname='',
         reverse=False,
         download_all=False,
         overwrite=False,
-        auth='',
+        auth=[],
         certfile=None,
         permitted_ciphers=(
             'ECDH+AESGCM:ECDH+AES256:ECDH+AES128:ECDH+3DES'
@@ -510,6 +511,13 @@ def run(hostname='',
     HTTPUploadHandler.picture = picture
     HTTPUploadHandler.message = message
     HTTPUploadHandler.file_mode = file_mode
+
+    # Prepare a list of auth strings for all user:pass combinations
+    if sys.version_info >= (3, 0):
+        auth = ['Basic ' + base64.b64encode(userpass.encode('utf-8')).decode('utf-8') for userpass in auth]
+    else:
+        auth = ['Basic ' + base64.b64encode(userpass) for userpass in auth]
+
     HTTPUploadHandler.auth = auth
     httpd = ThreadedHTTPServer((hostname, port), HTTPUploadHandler)
     # TODO: Specify TLS1.2 only?
@@ -1106,7 +1114,7 @@ def parse_args(cmd=None, ignore_defaults=False):
     parser.add_argument('--download-all', '--da', action='store_true', default=False,
                         help='provide "download all" link')
     parser.add_argument('-a', '--auth', type=str, default='',
-                        help='set the authentication credentials, in form USER:PASS')
+                        help='set the authentication credentials, in form USER1:PASS1[,USER2:PASS2...]')
     parser.add_argument('--ssl', type=str, default='',
                         help='set up https using the certificate file')
     parser.add_argument('--chmod', type=str, default=None,
@@ -1131,9 +1139,17 @@ def parse_args(cmd=None, ignore_defaults=False):
         print('Deleted ' + filename)
         sys.exit(0)
     if args.auth:
-        if ':' not in args.auth:
-            print("Error: authentication credentials must be "
-                  "specified as USER:PASSWORD")
+        # Split auth arg into an array of user:pass strings
+        args.auth = args.auth.split(",")
+        auth_ok = True
+        if len(args.auth) == 0:
+            auth_ok = False
+        for auth in args.auth:
+            if ':' not in auth:
+                auth_ok = False
+        if not auth_ok:
+            print("Error: authentication credentials must be specified as "
+            "USER:PASSWORD[,USER2:PASSWORD2...]")
             sys.exit(1)
     if args.ssl:
         if not os.path.isfile(args.ssl):
