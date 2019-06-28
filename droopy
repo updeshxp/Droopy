@@ -300,6 +300,8 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
                 print("Problem reading MOTD file " + self.motd)
                 motd_text = ''
             dico['motd'] = '<div id="motd">{0}</div>'.format(motd_text)
+        else:
+            dico['motd'] = ''
         # Set picture
         if self.picture:
             dico["divpicture"] = self.divpicture
