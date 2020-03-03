@@ -246,7 +246,7 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
     form_field = 'upfile'
     auth = []
     certfile = None
-    divpicture = '<div class="box"><img src="/__droopy/picture"/></div>'
+    divpicture = '<div class="box"><img src="__droopy/picture"/></div>'
     staticfolder = os.environ.get("DROOPY_STATIC",
       os.path.join(os.path.dirname(os.path.realpath(__file__)), "static"))
 
@@ -326,7 +326,7 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
         if self.publish_files:
             for name in self.published_files():
                 encoded_name = urllibparse.quote(_encode_str_if_py2(name))
-                links += '<a href="/{0}">{1}</a>'.format(encoded_name, name)
+                links += '<a href="{0}">{1}</a>'.format(encoded_name, name)
             links = '<div id="files">' + links + '</div>'
         # Possibly provide a "download all" link
         if self.download_all:
@@ -587,8 +587,8 @@ a {color: #4499cc; text-decoration: none;}
 #linkurl a:hover {color: #fff;}
 #message {padding: 5px 0; font-size: 2em; font-weight: lighter;
           letter-spacing: -2px; line-height: 50px; color: #aaa;}
-#motd {padding: 5px 0; font-size: 1.2em; font-weight: lighter;
-          letter-spacing: -1px; line-height: 50px; color: #aaa;}
+#motd {padding: 15px; font-size: 1.2em; font-weight: lighter;
+          letter-spacing: -1px; line-height: 25px; color: #888; text-align: justify}
 #sending {display: none; font-style: italic;}
 #sending .text {padding-top: 10px; color: #bbb; font-size: 0.8em;}
 #wrapform {padding-top:40px;}
@@ -625,7 +625,7 @@ maintmpl = '''
 <head>
 <title>%(maintitle)s</title>
 ''' + style + '''
-<link rel="stylesheet" href="/static/dropzone/dropzone.css">
+<link rel="stylesheet" href="static/dropzone/dropzone.css">
 <script language="JavaScript">
 function swap() {
    document.getElementById("form").style.display = "none";
@@ -674,7 +674,7 @@ function onunload() {
 ''' + userinfo + '''
 %(files)s
 </div>
-<script src="/static/dropzone/dropzone.js"></script>
+<script src="static/dropzone/dropzone.js"></script>
 <script>
   Dropzone.autoDiscover = false;
   var uploadDropzone = new Dropzone("#upload-form", {
