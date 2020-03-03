@@ -108,6 +108,19 @@ def _encode_str_if_py2(inputstr, encoding='utf-8'):
     else:
         return inputstr
 
+def _sanitise_filename(inputstr):
+    """Remove any hazardous characters from filenames and replace with a -.
+       Blacklist is anything non-ascii, null and the prohibited characters for Linux and Windows"""
+    outputstr = ""
+    for char in inputstr:
+        if ord(char) < 128 and ord(char) > 0 and char not in """\/:*?"<>|""":
+            outputstr = outputstr + char
+        else:
+            outputstr = outputstr + "-"
+    if not outputstr == inputstr:
+        print("Sanitised " + inputstr + " to " + outputstr)
+    return outputstr
+
 def fullpath(path):
     "Shortcut for os.path abspath(expanduser())"
     return os.path.abspath(os.path.expanduser(path))
@@ -379,6 +392,7 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
                 file_items = [file_items]
             for item in file_items:
                 filename = _decode_str_if_py2(basename(item.filename), "utf-8")
+                filename = _sanitise_filename(filename)
                 if filename == "":
                     continue
                 localpath = _encode_str_if_py2(os.path.join(self.directory, filename), "utf-8")
