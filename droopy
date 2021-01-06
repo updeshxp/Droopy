@@ -82,7 +82,12 @@ import cgi
 import os
 import os.path
 import posixpath
-import macpath
+
+try:
+    import macpath
+except ImportError:
+    macpath = None
+
 import ntpath
 import argparse
 import mimetypes
@@ -127,8 +132,10 @@ def fullpath(path):
 
 def basename(path):
     "Extract the file base name (some browsers send the full file path)."
-    for mod in posixpath, macpath, ntpath:
+    for mod in posixpath, ntpath:
         path = mod.basename(path)
+    if macpath:
+        path = macpath.basename(path)
     return path
 
 def check_auth(method):
