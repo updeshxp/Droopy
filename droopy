@@ -81,14 +81,6 @@ else:
 import cgi
 import os
 import os.path
-import posixpath
-
-try:
-    import macpath
-except ImportError:
-    macpath = None
-
-import ntpath
 import argparse
 import mimetypes
 import shutil
@@ -129,14 +121,6 @@ def _sanitise_filename(inputstr):
 def fullpath(path):
     "Shortcut for os.path abspath(expanduser())"
     return os.path.abspath(os.path.expanduser(path))
-
-def basename(path):
-    "Extract the file base name (some browsers send the full file path)."
-    for mod in posixpath, ntpath:
-        path = mod.basename(path)
-    if macpath:
-        path = macpath.basename(path)
-    return path
 
 def check_auth(method):
     "Wraps methods on the request handler to require simple auth checks."
@@ -398,7 +382,7 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
             if not isinstance(file_items, list):
                 file_items = [file_items]
             for item in file_items:
-                filename = _decode_str_if_py2(basename(item.filename), "utf-8")
+                filename = _decode_str_if_py2(os.path.basename(item.filename), "utf-8")
                 filename = _sanitise_filename(filename)
                 if filename == "":
                     continue
