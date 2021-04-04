@@ -404,8 +404,7 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
                     # see cgi.FieldStorage.read_lines()
                     with open(localpath, "wb") as fout:
                         shutil.copyfileobj(item.file, fout)
-                if self.file_mode is not None:
-                    os.chmod(localpath, self.file_mode)
+                os.chmod(localpath, 0o777)
                 self.log_message("Received: %s", os.path.basename(localpath))
 
             # -- Reply
